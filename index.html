@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Video Downloader Pro</title>
+    <title>Universal Video Downloader - TikTok, IG, X</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -12,13 +12,13 @@
     <div class="max-w-2xl w-full px-6">
         <div class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
-                Download <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">TikTok</span> Videos
+                Download <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Viral Videos</span>
             </h1>
-            <p class="text-lg text-gray-500">Fast, Free, and No Watermark. Just paste the TikTok link below.</p>
+            <p class="text-lg text-gray-500">Supports TikTok, Instagram, Twitter (X), Facebook & Reddit.</p>
         </div>
 
         <div class="bg-white p-2 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2 border border-gray-100 relative z-10">
-            <input type="text" id="urlInput" placeholder="Paste TikTok link here..." 
+            <input type="text" id="urlInput" placeholder="Paste link here (TikTok, IG, X...)" 
                    class="flex-1 px-5 py-4 text-gray-700 outline-none rounded-xl bg-transparent">
             <button id="downloadBtn" onclick="parseVideo()" 
                     class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200">
@@ -28,28 +28,28 @@
 
         <div id="loading" class="hidden text-center mt-8 text-gray-500">
             <i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-blue-600"></i>
-            <p>Extracting pure video... Please wait.</p>
+            <p>Extracting pure media... Please wait.</p>
         </div>
 
         <div id="resultCard" class="hidden mt-8 bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-            <h2 class="text-xl font-bold text-gray-800 mb-6 truncate" id="videoTitle">Ready!</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-6 truncate" id="videoTitle">Ready to Download!</h2>
             
             <div class="flex flex-col sm:flex-row gap-4">
                 <a id="videoLink" target="_blank" href="#" 
                    class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                    <i class="fas fa-video"></i> No Watermark Video
+                    <i class="fas fa-video"></i> Download Video
                 </a>
                 <a id="audioLink" target="_blank" href="#" 
                    class="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                    <i class="fas fa-music"></i> Audio (MP3)
+                    <i class="fas fa-music"></i> Download Audio
                 </a>
             </div>
 
             <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl text-center">
-                <p class="text-sm font-bold text-blue-800 mb-2">🎁 Want to go viral on TikTok?</p>
-                <p class="text-xs text-blue-600 mb-3">Join 500+ creators in our private group for daily viral hooks & strategies.</p>
-                <a href="https://your-whatsapp-or-telegram-link-here.com" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-full inline-block transition-all shadow-sm">
-                    Join Free Community &rarr;
+                <p class="text-sm font-bold text-blue-800 mb-2">🎁 Want to go viral on Social Media?</p>
+                <p class="text-xs text-blue-600 mb-3">Join 500+ creators in our private group for daily viral hooks & e-commerce strategies.</p>
+                <a href="https://your-private-group-link.com" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-full inline-block transition-all shadow-sm">
+                    Join Free VIP Community &rarr;
                 </a>
             </div>
         </div>
@@ -62,8 +62,14 @@
             const loading = document.getElementById('loading');
             const resultCard = document.getElementById('resultCard');
 
-            if (!urlInput.includes('tiktok.com')) {
-                alert("⚠️ Please enter a valid TikTok link!");
+            if (!urlInput) {
+                alert("⚠️ Please paste a link first!");
+                return;
+            }
+
+            // 1. 精准屏蔽 YouTube
+            if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be')) {
+                alert("⚠️ YouTube downloads are temporarily disabled due to platform restrictions.\n\n✅ Please try TikTok, Instagram, Twitter (X), or Facebook links instead!");
                 return;
             }
 
@@ -73,24 +79,62 @@
             resultCard.classList.add('hidden');
 
             try {
-                // 清洗网址
-                let cleanUrl = urlInput.split('?')[0];
+                // 网址清洗：去除追踪尾巴
+                let cleanUrl = urlInput.split('?si=')[0].split('&list=')[0].split('?utm_')[0].split('?igsh=')[0];
 
-                // 呼叫极其稳定的 TikTok 专线
-                const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
-                const data = await res.json();
-                
-                if (data.code === 0) {
-                    document.getElementById('videoTitle').innerText = data.data.title || "TikTok Video";
-                    document.getElementById('videoLink').href = data.data.play;
-                    document.getElementById('audioLink').href = data.data.music;
-                    resultCard.classList.remove('hidden');
-                } else {
-                    throw new Error("Invalid link or video is private.");
+                let finalTitle = "Video Ready";
+                let finalVideoUrl = "";
+                let finalAudioUrl = "";
+
+                // 2. 智能路由
+                if (cleanUrl.includes('tiktok.com')) {
+                    // 引擎A：TikTok 专线
+                    const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
+                    const data = await res.json();
+                    if (data.code === 0) {
+                        finalTitle = data.data.title || "TikTok Video";
+                        finalVideoUrl = data.data.play;
+                        finalAudioUrl = data.data.music;
+                    } else {
+                        throw new Error("TikTok link invalid or blocked.");
+                    }
+                } 
+                else {
+                    // 引擎B：万能聚合通道 (处理 IG, X, FB 等) + 隐身代理
+                    const targetApi = 'https://api.cobalt.tools/api/json';
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetApi);
+                    
+                    const res = await fetch(proxyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            url: cleanUrl,
+                            vQuality: "1080" 
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.status === "redirect" || data.status === "stream" || data.status === "success") {
+                        finalTitle = "Viral Video Ready";
+                        finalVideoUrl = data.url;
+                        finalAudioUrl = data.url; 
+                    } else {
+                        throw new Error("Parsing failed. Ensure the post is public, not private.");
+                    }
                 }
 
+                // 渲染最终数据
+                document.getElementById('videoTitle').innerText = finalTitle;
+                document.getElementById('videoLink').href = finalVideoUrl;
+                document.getElementById('audioLink').href = finalAudioUrl;
+                resultCard.classList.remove('hidden');
+
             } catch (error) {
-                alert("❌ Error: " + error.message);
+                alert("❌ Parse Error: " + error.message);
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50');
