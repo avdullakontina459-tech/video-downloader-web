@@ -102,9 +102,22 @@
                     }
                 } 
                 else {
-                    // 引擎B：万能聚合通道 (Cobalt) - 支持 YT, IG, X, Reddit, Facebook 等
-                    // 这里使用了官方公开的通用节点，并配置了标准的请求头
-                    const res = await fetch('https://api.cobalt.tools/api/json', {
+                    // 引擎B：万能聚合通道 (Cobalt) + CORS 隐身代理
+                    const targetApi = 'https://api.cobalt.tools/api/json';
+                    // 使用跨域代理骗过浏览器的安全保安
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetApi);
+                    
+                    const res = await fetch(proxyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            url: cleanUrl,
+                            vQuality: "1080" 
+                        })
+                    });
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
