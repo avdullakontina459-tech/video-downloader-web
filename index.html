@@ -62,26 +62,60 @@
             resultCard.classList.add('hidden');
 
             try {
-                // 呼叫你的 Render 云端引擎
-   const response = await fetch('https://my-video-api-pro.onrender.com/api/v1/parser', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: urlInput })
-                });
+                let finalVideoTitle = "Ready to Download!";
+                let finalVideoUrl = "";
+                let finalAudioUrl = "";
 
-                const json = await response.json();
-
-                if (response.ok) {
-                    // 数据抓取成功，渲染到页面上
-                    document.getElementById('videoTitle').innerText = json.data.title;
-                    document.getElementById('videoLink').href = json.data.links.video_no_watermark;
-                    document.getElementById('audioLink').href = json.data.links.audio_mp3_stream;
-                    resultCard.classList.remove('hidden');
-                } else {
-                    alert("Error: " + (json.detail || "Failed to parse video."));
+                // 🧠 智能路由：判断老外输入的是哪家网站的链接
+                if (urlInput.includes('tiktok.com')) {
+                    // 🚀 引擎 1：TikTok 专用通道 (TikWM)
+                    const apiUrl = 'https://www.tikwm.com/api/?url=' + encodeURIComponent(urlInput);
+                    const response = await fetch(apiUrl);
+                    const json = await response.json();
+                    
+                    if (json.code === 0) {
+                        finalVideoTitle = json.data.title || "TikTok Video";
+                        finalVideoUrl = json.data.play;
+                        finalAudioUrl = json.data.music;
+                    } else {
+                        throw new Error("TikTok link invalid or blocked.");
+                    }
+                } 
+                else if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be')) {
+                    // 🛸 引擎 2：YouTube 专用通道 (Cobalt 开源神器)
+                    const response = await fetch('https://api.cobalt.tools/api/json', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: urlInput })
+                    });
+                    const json = await response.json();
+                    
+                    if (json.status === "redirect" || json.status === "stream") {
+                        finalVideoTitle = "YouTube Video";
+                        finalVideoUrl = json.url;
+                        finalAudioUrl = json.url; // Cobalt 默认给最高清音视频一体包
+                    } else {
+                        throw new Error("YouTube link invalid or blocked.");
+                    }
+                } 
+                else {
+                    // 拦截垃圾链接
+                    alert("⚠️ Please enter a valid TikTok or YouTube link!");
+                    return; 
                 }
+
+                // 🎯 统一渲染：把拿到的直链挂到绿色按钮上
+                document.getElementById('videoTitle').innerText = finalVideoTitle;
+                document.getElementById('videoLink').href = finalVideoUrl;
+                document.getElementById('audioLink').href = finalAudioUrl;
+                
+                resultCard.classList.remove('hidden');
+
             } catch (error) {
-                alert("Network error. Make sure your Python server is running!");
+                alert("❌ Error: " + error.message + " (Please try again)");
             } finally {
                 // 恢复按钮状态
                 btn.disabled = false;
