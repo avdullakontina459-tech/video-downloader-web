@@ -65,7 +65,7 @@
 
         <div id="loading" class="hidden text-center mt-8 text-blue-400 font-medium">
             <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-            <p>Fetching media from server... Please wait.</p>
+            <p>Bypassing security & fetching media... Please wait.</p>
         </div>
 
         <div id="resultCard" class="hidden mt-8 glass-box p-6 rounded-2xl">
@@ -127,11 +127,11 @@
                 let fallbackUrl = "";
 
                 // =========================================
-                // 顶级三擎解析系统 (绝不宕机)
+                // 顶级三擎解析系统 (融入 AllOrigins 跨域代理)
                 // =========================================
                 
                 if (cleanUrl.includes('tiktok.com')) {
-                    // 引擎 1: TikTok 稳定专线
+                    // 引擎 1: TikTok 专线 (原生支持跨域)
                     const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
                     const data = await res.json();
                     if (data.code === 0) {
@@ -143,33 +143,35 @@
                     }
                 } 
                 else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
-                    // 引擎 2: 推特终极直连降维打击 (提取官方 CDN)
+                    // 引擎 2: 推特降维打击 + AllOrigins 跨域外衣
                     const match = cleanUrl.match(/status\/(\d+)/);
                     if (!match) throw new Error("Cannot find Tweet ID in the link.");
                     const tweetId = match[1];
                     
-                    // 直通推特隐秘数据接口，无视所有风控
-                    const res = await fetch('https://cdn.syndication.twimg.com/tweet-result?id=' + tweetId);
-                    if (!res.ok) throw new Error("Tweet is private, deleted, or does not exist.");
+                    // 推特官方 CDN 节点
+                    const targetUrl = 'https://cdn.syndication.twimg.com/tweet-result?id=' + tweetId;
+                    
+                    // 核心动作：用 AllOrigins 包裹请求，骗过浏览器 CORS 检查！
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+                    
+                    const res = await fetch(proxyUrl);
+                    if (!res.ok) throw new Error("Tweet is private or deleted.");
                     
                     const data = await res.json();
                     if (data.video && data.video.variants) {
-                        // 提取纯 MP4 视频，过滤掉推特的切片格式
                         const mp4s = data.video.variants.filter(v => v.type === 'video/mp4');
                         if (mp4s.length === 0) throw new Error("No MP4 format found in this tweet.");
-                        // 按清晰度（比特率）从高到低排序，拿最清晰的那一个
                         mp4s.sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0));
                         
                         finalTitle = data.text ? data.text.substring(0, 30) + "..." : "X (Twitter) Video";
                         finalVideoUrl = mp4s[0].src;
-                        fallbackUrl = finalVideoUrl; // 推特音视频一体，直接复用
+                        fallbackUrl = finalVideoUrl;
                     } else {
                         throw new Error("This tweet does not contain a video.");
                     }
                 }
                 else {
-                    // 引擎 3: IG / Reddit 社区最强公开节点
-                    // (避开了被封杀的官方节点，换用最稳定的极客社区公有化节点)
+                    // 引擎 3: IG / Reddit 社区极客节点
                     const res = await fetch('https://co.wuk.sh/api/json', {
                         method: 'POST',
                         headers: {
@@ -189,7 +191,7 @@
                         finalVideoUrl = data.url;
                         fallbackUrl = data.url; 
                     } else {
-                        throw new Error(data.text || "Failed to fetch. Ensure the post is public.");
+                        throw new Error(data.text || "Ensure the post is public. Platform may be blocking requests.");
                     }
                 }
 
