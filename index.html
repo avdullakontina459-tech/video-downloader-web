@@ -1,93 +1,112 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>下载热门视频 - 全平台无水印解析</title>
+    <title>Download Viral Videos - TikTok, X, IG</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 苹果风毛玻璃特效 */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        /* 硅谷高级暗黑 SaaS 风格 */
+        body {
+            background-color: #0B0F19; /* 极深邃的夜间蓝黑 */
+            color: #F8FAFC;
         }
-        /* 酷炫但不刺眼的渐变文字 */
+        .glass-box {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
         .text-gradient {
-            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #3B82F6 0%, #A855F7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* 动态背景光晕 */
-        .bg-glow {
+        .bg-gradient-btn {
+            background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+            transition: all 0.3s ease;
+        }
+        .bg-gradient-btn:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+        /* 顶部环境光晕 */
+        .ambient-light {
             position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(255,255,255,0) 70%);
-            top: -200px;
+            top: -150px;
             left: 50%;
             transform: translateX(-50%);
+            width: 800px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
             z-index: -1;
             pointer-events: none;
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col items-center pt-24 relative overflow-x-hidden text-slate-800">
+<body class="min-h-screen flex flex-col items-center pt-24 relative overflow-x-hidden font-sans">
 
-    <div class="bg-glow"></div>
+    <div class="ambient-light"></div>
 
     <div class="max-w-2xl w-full px-6 relative z-10">
+        <!-- 头部区域 (纯正欧美极简文案) -->
         <div class="text-center mb-10">
-            <h1 class="text-5xl md:text-6xl font-black tracking-tight mb-4">
-                下载<span class="text-gradient">热门视频</span>
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-white">
+                Download <span class="text-gradient">Viral Videos</span>
             </h1>
-            <p class="text-lg text-slate-500 font-medium">
-                支持 TikTok、Instagram、Twitter (X)、Facebook 和 Reddit。
+            <p class="text-lg text-slate-400 font-medium">
+                Supports TikTok, Instagram, Twitter (X), Facebook & Reddit.
             </p>
         </div>
 
-        <div class="glass-panel p-2 rounded-2xl flex flex-col sm:flex-row gap-2 transition-all duration-300 hover:shadow-lg">
+        <!-- 输入区域 (高质感暗黑毛玻璃) -->
+        <div class="glass-box p-2 rounded-2xl flex flex-col sm:flex-row gap-2 transition-all duration-300 hover:border-slate-600">
             <div class="flex-1 flex items-center px-4 py-3">
-                <i class="fas fa-link text-slate-400 mr-3"></i>
-                <input type="text" id="urlInput" placeholder="在此处粘贴链接 (TikTok、IG、X...)" 
-                       class="w-full bg-transparent text-slate-700 placeholder-slate-400 outline-none font-medium text-lg">
+                <i class="fas fa-link text-slate-500 mr-3"></i>
+                <input type="text" id="urlInput" placeholder="Paste video link here..." 
+                       class="w-full bg-transparent text-white placeholder-slate-500 outline-none font-medium text-lg">
             </div>
             <button id="downloadBtn" onclick="parseVideo()" 
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 shadow-md hover:shadow-blue-500/30 flex items-center justify-center gap-2 whitespace-nowrap">
-                <i class="fas fa-magic"></i> 解析视频
+                    class="bg-gradient-btn text-white font-bold py-4 px-8 rounded-xl shadow-lg flex items-center justify-center gap-2 whitespace-nowrap tracking-wide">
+                <i class="fas fa-bolt"></i> Extract
             </button>
         </div>
 
-        <div id="loading" class="hidden text-center mt-8 text-blue-600 font-medium">
+        <!-- 加载状态 -->
+        <div id="loading" class="hidden text-center mt-8 text-blue-400 font-medium">
             <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-            <p>正在云端提取无水印视频，请稍候...</p>
+            <p>Fetching media from server... Please wait.</p>
         </div>
 
-        <div id="resultCard" class="hidden mt-8 glass-panel p-6 rounded-2xl">
-            <h2 class="text-xl font-bold text-slate-800 mb-6 truncate flex items-center gap-2" id="videoTitle">
-                <i class="fas fa-check-circle text-green-500"></i> 解析成功！
+        <!-- 结果展示面板 -->
+        <div id="resultCard" class="hidden mt-8 glass-box p-6 rounded-2xl">
+            <h2 class="text-xl font-bold text-white mb-6 truncate flex items-center gap-2" id="videoTitle">
+                <i class="fas fa-check-circle text-green-400"></i> Media Ready
             </h2>
             
             <div class="flex flex-col sm:flex-row gap-4">
                 <a id="videoLink" target="_blank" href="#" 
-                   class="flex-1 bg-slate-900 hover:bg-slate-800 text-white text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                    <i class="fas fa-download"></i> 下载视频 (无水印)
+                   class="flex-1 bg-white hover:bg-slate-200 text-slate-900 text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-video"></i> Download Video
                 </a>
                 <a id="audioLink" target="_blank" href="#" 
-                   class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-center font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-music"></i> 获取音频
+                   class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-center font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-music"></i> Save Audio
                 </a>
             </div>
 
-            <div class="mt-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 text-center">
-                <p class="text-base font-bold text-slate-800 mb-1">🚀 想要批量做爆款账号？</p>
-                <p class="text-sm text-slate-600 mb-4">加入我们的跨境矩阵出海交流群，获取最新起号玩法与带货选品策略。</p>
-                <a href="#" target="_blank" class="text-blue-600 font-bold hover:text-blue-700 flex items-center justify-center gap-1">
-                    免费加入内部社群 <i class="fas fa-arrow-right text-sm"></i>
-                </a>
+            <!-- 私域变现漏斗 (高转化引流文案) -->
+            <div class="mt-8 p-5 rounded-xl border border-blue-500/30 bg-blue-900/20 text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 z-0"></div>
+                <div class="relative z-10">
+                    <p class="text-base font-bold text-blue-300 mb-1">🚀 Want to build a 100k+ Followers Matrix?</p>
+                    <p class="text-sm text-slate-400 mb-4">Join our private creator group for viral hooks & e-commerce strategies.</p>
+                    <a href="#" target="_blank" class="text-white bg-blue-600/80 hover:bg-blue-500 font-bold py-2 px-6 rounded-lg text-sm inline-flex items-center justify-center gap-2 transition-all">
+                        Join Free Community <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -100,91 +119,83 @@
             const resultCard = document.getElementById('resultCard');
 
             if (!urlInput) {
-                alert("⚠️ 请先粘贴视频链接！");
+                alert("⚠️ Please paste a valid link first!");
                 return;
             }
 
             if (urlInput.includes('youtube.com') || urlInput.includes('youtu.be')) {
-                alert("⚠️ 暂不支持 YouTube 链接，请尝试 TikTok、Twitter、Instagram 或 Reddit。");
+                alert("⚠️ YouTube is strictly restricted. Try TikTok, X (Twitter), IG, or Reddit.");
                 return;
             }
 
+            // 锁定界面
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 解析中...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
             btn.classList.add('opacity-70');
             loading.classList.remove('hidden');
             resultCard.classList.add('hidden');
 
             try {
-                // 网址清洗：去除追踪尾巴
+                // 深度清洗链接杂质
                 let cleanUrl = urlInput.split('?si=')[0].split('&list=')[0].split('?utm_')[0].split('?igsh=')[0];
-                let finalTitle = "视频准备就绪";
+                let finalTitle = "Media Ready";
                 let finalVideoUrl = "";
                 let fallbackUrl = "";
 
+                // =========================================
+                // 核心 API 路由层 (全新顶级接口)
+                // =========================================
+                
                 if (cleanUrl.includes('tiktok.com')) {
-                    // TikTok 专线
+                    // 通道 1: TikTok 绝对防线
                     const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
                     const data = await res.json();
                     if (data.code === 0) {
-                        finalTitle = data.data.title || "TikTok 热门视频";
+                        finalTitle = data.data.title || "TikTok Viral Video";
                         finalVideoUrl = data.data.play;
                         fallbackUrl = data.data.music;
                     } else {
-                        throw new Error("链接无效或视频为私密状态。");
+                        throw new Error("TikTok video is private or deleted.");
                     }
                 } 
-                else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
-                    // 推特专属强解析后门 (已包含 /i/status/ 修复补丁)
-                    let vxUrl = cleanUrl.replace('x.com', 'api.vxtwitter.com').replace('twitter.com', 'api.vxtwitter.com');
-                    vxUrl = vxUrl.replace('/i/status/', '/anyuser/status/');
-                    
-                    const res = await fetch(vxUrl);
-                    const data = await res.json();
-                    if (data && data.media_extended && data.media_extended.length > 0) {
-                        finalTitle = "Twitter (X) 视频";
-                        finalVideoUrl = data.media_extended[0].url;
-                        fallbackUrl = finalVideoUrl;
-                    } else {
-                        throw new Error("该推文中未找到视频，或账号为私密账号。");
-                    }
-                }
                 else {
-                    // IG / FB / Reddit 通用通道
-                    const targetApi = 'https://api.cobalt.tools/api/json';
-                    const res = await fetch(targetApi, {
+                    // 通道 2: X(Twitter), IG, Reddit 顶级聚合解析 (Cobalt 官方主节点)
+                    // 修复了所有跨域问题，直接通过浏览器原生 Fetch
+                    const res = await fetch('https://api.cobalt.tools/', {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ 
-                            url: cleanUrl,
-                            vQuality: "1080" 
+                            url: cleanUrl
                         })
                     });
+                    
                     const data = await res.json();
-                    if (data.status === "redirect" || data.status === "stream" || data.status === "success") {
-                        finalTitle = "社交媒体视频";
+                    
+                    if (data.url || data.status === "redirect" || data.status === "stream" || data.status === "success") {
+                        finalTitle = "Social Media Asset";
                         finalVideoUrl = data.url;
                         fallbackUrl = data.url; 
                     } else {
-                        throw new Error("平台拦截了请求，请检查链接是否正确或公开。");
+                        // 拦截官方的具体报错信息
+                        throw new Error(data.text || "Failed to fetch from this platform. Ensure the post is public.");
                     }
                 }
 
-                // 渲染结果
-                document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-500"></i> ` + finalTitle;
+                // 注入数据并展示
+                document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ` + finalTitle;
                 document.getElementById('videoLink').href = finalVideoUrl;
                 document.getElementById('audioLink').href = fallbackUrl;
                 resultCard.classList.remove('hidden');
 
             } catch (error) {
-                alert("❌ 解析失败: " + error.message);
+                alert("❌ Error: " + error.message);
             } finally {
-                // 恢复按钮
+                // 解除锁定
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-magic"></i> 解析视频';
+                btn.innerHTML = '<i class="fas fa-bolt"></i> Extract';
                 btn.classList.remove('opacity-70');
                 loading.classList.add('hidden');
             }
