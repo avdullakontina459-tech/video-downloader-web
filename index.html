@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>Download Viral Videos - TikTok, X, IG</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -74,11 +75,11 @@
             </h2>
             
             <div class="flex flex-col sm:flex-row gap-4">
-                <a id="videoLink" target="_blank" href="#" 
+                <a id="videoLink" target="_blank" rel="noreferrer noopener" href="#" 
                    class="flex-1 bg-white hover:bg-slate-200 text-slate-900 text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
                     <i class="fas fa-video"></i> Download Video
                 </a>
-                <a id="audioLink" target="_blank" href="#" 
+                <a id="audioLink" target="_blank" rel="noreferrer noopener" href="#" 
                    class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-center font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
                     <i class="fas fa-music"></i> Save Audio
                 </a>
@@ -128,9 +129,7 @@
                 let finalVideoUrl = "";
                 let fallbackUrl = "";
 
-                // =========================================
                 // 1. TikTok 专线
-                // =========================================
                 if (cleanUrl.includes('tiktok.com')) {
                     const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
                     const data = await res.json();
@@ -142,15 +141,12 @@
                         throw new Error("TikTok video is private or deleted.");
                     }
                 } 
-                // =========================================
                 // 2. Twitter (X) 官方提纯专线
-                // =========================================
                 else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
                     loadingText.innerText = "Extracting X media assets...";
                     const idMatch = cleanUrl.match(/status\/(\d+)/);
                     if (!idMatch) throw new Error("Invalid Twitter link format.");
                     
-                    // 利用 vxtwitter API 原生跨域特性，精准打击
                     const res = await fetch(`https://api.vxtwitter.com/Twitter/status/${idMatch[1]}`);
                     const data = await res.json();
                     
@@ -162,12 +158,9 @@
                         throw new Error("No video found in this tweet, or the account is private.");
                     }
                 }
-                // =========================================
                 // 3. 社交媒体“九头蛇”节点轮询集群 (IG, FB, Reddit)
-                // =========================================
                 else {
                     loadingText.innerText = "Testing global nodes...";
-                    // 储备 4 个顶级备用节点，死掉一个自动换下一个
                     const cobaltNodes = [
                         'https://api.cobalt.tools/api/json',
                         'https://co.wuk.sh/api/json',
@@ -196,10 +189,9 @@
                                 finalVideoUrl = data.url;
                                 fallbackUrl = data.url; 
                                 success = true;
-                                break; // 只要有一个成功，立刻跳出轮询
+                                break; 
                             }
                         } catch (err) {
-                            // 节点被封杀，悄悄忽略，进入下一次循环
                             continue; 
                         }
                     }
