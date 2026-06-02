@@ -65,7 +65,7 @@
 
         <div id="loading" class="hidden text-center mt-8 text-blue-400 font-medium">
             <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-            <p>Fetching media from server... Please wait.</p>
+            <p id="loadingText">Searching global nodes... Please wait.</p>
         </div>
 
         <div id="resultCard" class="hidden mt-8 glass-box p-6 rounded-2xl">
@@ -102,6 +102,7 @@
             const urlInput = document.getElementById('urlInput').value.trim();
             const btn = document.getElementById('downloadBtn');
             const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
             const resultCard = document.getElementById('resultCard');
 
             if (!urlInput) {
@@ -119,20 +120,18 @@
             btn.classList.add('opacity-70');
             loading.classList.remove('hidden');
             resultCard.classList.add('hidden');
+            loadingText.innerText = "Bypassing security protocols...";
 
             try {
-                // 深度清洗链接杂质
                 let cleanUrl = urlInput.split('?si=')[0].split('&list=')[0].split('?utm_')[0].split('?igsh=')[0];
                 let finalTitle = "Media Ready";
                 let finalVideoUrl = "";
                 let fallbackUrl = "";
 
                 // =========================================
-                // 顶级双核解析系统 (大道至简，抛弃所有代理)
+                // 1. TikTok 专线
                 // =========================================
-                
                 if (cleanUrl.includes('tiktok.com')) {
-                    // 引擎 1: TikTok 稳定专线
                     const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
                     const data = await res.json();
                     if (data.code === 0) {
@@ -143,29 +142,70 @@
                         throw new Error("TikTok video is private or deleted.");
                     }
                 } 
-                else {
-                    // 引擎 2: 超级聚合专线 (统一处理 X, IG, FB, Reddit)
-                    // 直接调用黑客社区最强私有集群，原生支持跨域，彻底告别 Failed to fetch
-                    const res = await fetch('https://co.wuk.sh/api/json', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ 
-                            url: cleanUrl,
-                            vQuality: "1080"
-                        })
-                    });
+                // =========================================
+                // 2. Twitter (X) 官方提纯专线
+                // =========================================
+                else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
+                    loadingText.innerText = "Extracting X media assets...";
+                    const idMatch = cleanUrl.match(/status\/(\d+)/);
+                    if (!idMatch) throw new Error("Invalid Twitter link format.");
                     
+                    // 利用 vxtwitter API 原生跨域特性，精准打击
+                    const res = await fetch(`https://api.vxtwitter.com/Twitter/status/${idMatch[1]}`);
                     const data = await res.json();
                     
-                    if (data.url || data.status === "redirect" || data.status === "stream" || data.status === "success") {
-                        finalTitle = "Social Media Asset";
-                        finalVideoUrl = data.url;
-                        fallbackUrl = data.url; 
+                    if (data && data.media_extended && data.media_extended.length > 0) {
+                        finalTitle = data.text ? data.text.substring(0, 30) + "..." : "X (Twitter) Video";
+                        finalVideoUrl = data.media_extended[0].url;
+                        fallbackUrl = finalVideoUrl;
                     } else {
-                        throw new Error(data.text || "Failed to fetch. Ensure the post is public.");
+                        throw new Error("No video found in this tweet, or the account is private.");
+                    }
+                }
+                // =========================================
+                // 3. 社交媒体“九头蛇”节点轮询集群 (IG, FB, Reddit)
+                // =========================================
+                else {
+                    loadingText.innerText = "Testing global nodes...";
+                    // 储备 4 个顶级备用节点，死掉一个自动换下一个
+                    const cobaltNodes = [
+                        'https://api.cobalt.tools/api/json',
+                        'https://co.wuk.sh/api/json',
+                        'https://cobalt.snapredd.app/api/json',
+                        'https://cobalt.kwiatekmateusz.com/api/json'
+                    ];
+                    
+                    let success = false;
+                    
+                    for (let i = 0; i < cobaltNodes.length; i++) {
+                        loadingText.innerText = `Connecting to Node ${i+1}...`;
+                        try {
+                            const res = await fetch(cobaltNodes[i], {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ url: cleanUrl, vQuality: "1080" })
+                            });
+                            
+                            const data = await res.json();
+                            
+                            if (data.url || data.status === "redirect" || data.status === "stream" || data.status === "success") {
+                                finalTitle = "Social Media Asset";
+                                finalVideoUrl = data.url;
+                                fallbackUrl = data.url; 
+                                success = true;
+                                break; // 只要有一个成功，立刻跳出轮询
+                            }
+                        } catch (err) {
+                            // 节点被封杀，悄悄忽略，进入下一次循环
+                            continue; 
+                        }
+                    }
+                    
+                    if (!success) {
+                        throw new Error("All public nodes are currently blocked or the post is private. Please try again later.");
                     }
                 }
 
