@@ -116,37 +116,73 @@
             btn.classList.add('opacity-70');
             loading.classList.remove('hidden');
             resultCard.classList.add('hidden');
-            loadingText.innerText = "Connecting to Premium API Engine...";
 
             try {
                 let cleanUrl = urlInput.split('?si=')[0].split('&list=')[0].split('?utm_')[0].split('?igsh=')[0];
-                
-                // 🚀 统一通道：全部打给你自己建立的 Cloudflare 商业大脑！
-                const workerUrl = 'https://video-api.lindseyclaribel611.workers.dev/';
-                
-                const res = await fetch(workerUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: cleanUrl })
-                });
-                
-                const data = await res.json();
-                
-                if (data.success && data.url) {
-                    document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> Media Ready`;
-                    document.getElementById('videoLink').href = data.url;
-                    
-                    // 隐藏备用按钮，因为 API 直接吐了最终链接
-                    const audioBtn = document.getElementById('audioLink');
-                    if(audioBtn) audioBtn.classList.add('hidden');
-                    
-                    resultCard.classList.remove('hidden');
-                } else {
-                    throw new Error(data.error || "Failed to extract. Ensure the post is public.");
+                let finalTitle = "Media Ready";
+                let finalVideoUrl = "";
+                let fallbackUrl = "";
+
+                // 1. TikTok 专线 (直连极其稳定)
+                if (cleanUrl.includes('tiktok.com')) {
+                    loadingText.innerText = "Extracting TikTok assets...";
+                    const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
+                    const data = await res.json();
+                    if (data.code === 0) {
+                        finalTitle = data.data.title || "TikTok Viral Video";
+                        finalVideoUrl = data.data.play;
+                        fallbackUrl = data.data.music;
+                    } else {
+                        throw new Error("TikTok video is private or deleted.");
+                    }
+                } 
+                // 2. Twitter (X) 专线
+                else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
+                    loadingText.innerText = "Extracting X media assets...";
+                    const idMatch = cleanUrl.match(/status\/(\d+)/);
+                    if (!idMatch) throw new Error("Invalid Twitter link format.");
+                    const res = await fetch(`https://api.vxtwitter.com/Twitter/status/${idMatch[1]}`);
+                    const data = await res.json();
+                    if (data && data.media_extended && data.media_extended.length > 0) {
+                        finalTitle = data.text ? data.text.substring(0, 30) + "..." : "X (Twitter) Video";
+                        finalVideoUrl = data.media_extended[0].url;
+                        fallbackUrl = finalVideoUrl;
+                    } else {
+                        throw new Error("No video found in this tweet.");
+                    }
                 }
+                // 3. YouTube / IG / FB / Reddit -> 全面接管至你的私有 Cloudflare Server!
+                else {
+                    loadingText.innerText = "Connecting to Private Cloud Engine...";
+                    
+                    // 🚀 这里就是你刚才创建的无敌后台节点！
+                    const workerUrl = 'https://video-api.lindseyclaribel611.workers.dev/';
+                    
+                    const res = await fetch(workerUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: cleanUrl })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.url || data.status === "redirect" || data.status === "stream" || data.status === "success") {
+                        finalTitle = "Social Media Asset";
+                        finalVideoUrl = data.url;
+                        fallbackUrl = data.url; 
+                    } else {
+                        // 如果后端报错，直接把错误信息吐出来
+                        throw new Error(data.error?.code || data.text || "Failed to extract. Ensure the post is strictly public.");
+                    }
+                }
+
+                document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ` + finalTitle;
+                document.getElementById('videoLink').href = finalVideoUrl;
+                document.getElementById('audioLink').href = fallbackUrl;
+                resultCard.classList.remove('hidden');
 
             } catch (error) {
                 alert(`❌ Error: ${error.message}`);
