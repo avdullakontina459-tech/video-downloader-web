@@ -1,104 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Download Viral Videos - All Platforms</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #0B0F19; color: #F8FAFC; }
-        .glass-box {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        .text-gradient {
-            background: linear-gradient(135deg, #3B82F6 0%, #A855F7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .bg-gradient-btn {
-            background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-            transition: all 0.3s ease;
-        }
-        .bg-gradient-btn:hover {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            transform: translateY(-1px);
-        }
-        .ambient-light {
-            position: absolute;
-            top: -150px; left: 50%; transform: translateX(-50%);
-            width: 800px; height: 400px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
-            z-index: -1; pointer-events: none;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col items-center pt-24 relative overflow-x-hidden font-sans">
-
-    <div class="ambient-light"></div>
-
-    <div class="max-w-2xl w-full px-6 relative z-10">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-white">
-                Download <span class="text-gradient">Viral Videos</span>
-            </h1>
-            <p class="text-lg text-slate-400 font-medium">
-                Supports TikTok, YouTube, Instagram, Twitter (X), Facebook & Reddit.
-            </p>
-        </div>
-
-        <div class="glass-box p-2 rounded-2xl flex flex-col sm:flex-row gap-2 transition-all duration-300 hover:border-slate-600">
-            <div class="flex-1 flex items-center px-4 py-3">
-                <i class="fas fa-link text-slate-500 mr-3"></i>
-                <input type="text" id="urlInput" placeholder="Paste video link here..." 
-                       class="w-full bg-transparent text-white placeholder-slate-500 outline-none font-medium text-lg">
-            </div>
-            <button id="downloadBtn" onclick="parseVideo()" 
-                    class="bg-gradient-btn text-white font-bold py-4 px-8 rounded-xl shadow-lg flex items-center justify-center gap-2 whitespace-nowrap tracking-wide">
-                <i class="fas fa-bolt"></i> Extract
-            </button>
-        </div>
-
-        <div id="loading" class="hidden text-center mt-8 text-blue-400 font-medium">
-            <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-            <p id="loadingText">Processing via Private Cloud... Please wait.</p>
-        </div>
-
-        <div id="resultCard" class="hidden mt-8 glass-box p-6 rounded-2xl">
-            <h2 class="text-xl font-bold text-white mb-6 truncate flex items-center gap-2" id="videoTitle">
-                <i class="fas fa-check-circle text-green-400"></i> Media Ready
-            </h2>
-            
-            <div class="flex flex-col sm:flex-row gap-4">
-                <a id="videoLink" target="_blank" rel="noreferrer noopener" href="#" 
-                   class="flex-1 bg-white hover:bg-slate-200 text-slate-900 text-center font-bold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
-                    <i class="fas fa-video"></i> Download Video
-                </a>
-                <a id="audioLink" target="_blank" rel="noreferrer noopener" href="#" 
-                   class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-center font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-music"></i> Save Audio
-                </a>
-            </div>
-
-            <div class="mt-8 p-5 rounded-xl border border-blue-500/30 bg-blue-900/20 text-center relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 z-0"></div>
-                <div class="relative z-10">
-                    <p class="text-base font-bold text-blue-300 mb-1">🚀 Want to build a 100k+ Followers Matrix?</p>
-                    <p class="text-sm text-slate-400 mb-4">Join our private creator group for viral hooks & e-commerce strategies.</p>
-                    <a href="#" target="_blank" class="text-white bg-blue-600/80 hover:bg-blue-500 font-bold py-2 px-6 rounded-lg text-sm inline-flex items-center justify-center gap-2 transition-all">
-                        Join Free Community <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<script>
         async function parseVideo() {
             const urlInput = document.getElementById('urlInput').value.trim();
             const btn = document.getElementById('downloadBtn');
@@ -116,73 +16,38 @@
             btn.classList.add('opacity-70');
             loading.classList.remove('hidden');
             resultCard.classList.add('hidden');
+            loadingText.innerText = "Connecting to Premium API Engine...";
 
             try {
+                // 清洗链接
                 let cleanUrl = urlInput.split('?si=')[0].split('&list=')[0].split('?utm_')[0].split('?igsh=')[0];
-                let finalTitle = "Media Ready";
-                let finalVideoUrl = "";
-                let fallbackUrl = "";
-
-                // 1. TikTok 专线 (直连极其稳定)
-                if (cleanUrl.includes('tiktok.com')) {
-                    loadingText.innerText = "Extracting TikTok assets...";
-                    const res = await fetch('https://www.tikwm.com/api/?url=' + encodeURIComponent(cleanUrl));
-                    const data = await res.json();
-                    if (data.code === 0) {
-                        finalTitle = data.data.title || "TikTok Viral Video";
-                        finalVideoUrl = data.data.play;
-                        fallbackUrl = data.data.music;
-                    } else {
-                        throw new Error("TikTok video is private or deleted.");
-                    }
-                } 
-                // 2. Twitter (X) 专线
-                else if (cleanUrl.includes('x.com') || cleanUrl.includes('twitter.com')) {
-                    loadingText.innerText = "Extracting X media assets...";
-                    const idMatch = cleanUrl.match(/status\/(\d+)/);
-                    if (!idMatch) throw new Error("Invalid Twitter link format.");
-                    const res = await fetch(`https://api.vxtwitter.com/Twitter/status/${idMatch[1]}`);
-                    const data = await res.json();
-                    if (data && data.media_extended && data.media_extended.length > 0) {
-                        finalTitle = data.text ? data.text.substring(0, 30) + "..." : "X (Twitter) Video";
-                        finalVideoUrl = data.media_extended[0].url;
-                        fallbackUrl = finalVideoUrl;
-                    } else {
-                        throw new Error("No video found in this tweet.");
-                    }
+                
+                // 🚀 唯一通道：全部打给你自己建立的 Cloudflare 商业大脑！
+                const workerUrl = 'https://video-api.lindseyclaribel611.workers.dev/';
+                
+                const res = await fetch(workerUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: cleanUrl })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success && data.url) {
+                    document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> Media Ready`;
+                    document.getElementById('videoLink').href = data.url;
+                    
+                    // 隐藏备用按钮，因为 API 直接吐了最终链接
+                    document.getElementById('audioLink').classList.add('hidden');
+                    
+                    resultCard.classList.remove('hidden');
+                } else {
+                    // 如果后端报错，直接吐出错误信息
+                    throw new Error(data.error || "Failed to extract. Ensure the post is public.");
                 }
-                // 3. YouTube / IG / FB / Reddit -> 全面接管至你的私有 Cloudflare Server!
-                else {
-                    loadingText.innerText = "Connecting to Private Cloud Engine...";
-                    
-                    // 🚀 这里就是你刚才创建的无敌后台节点！
-                    const workerUrl = 'https://video-api.lindseyclaribel611.workers.dev/';
-                    
-                    const res = await fetch(workerUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ url: cleanUrl })
-                    });
-                    
-                    const data = await res.json();
-                    
-                    if (data.url || data.status === "redirect" || data.status === "stream" || data.status === "success") {
-                        finalTitle = "Social Media Asset";
-                        finalVideoUrl = data.url;
-                        fallbackUrl = data.url; 
-                    } else {
-                        // 如果后端报错，直接把错误信息吐出来
-                        throw new Error(data.error?.code || data.text || "Failed to extract. Ensure the post is strictly public.");
-                    }
-                }
-
-                document.getElementById('videoTitle').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> ` + finalTitle;
-                document.getElementById('videoLink').href = finalVideoUrl;
-                document.getElementById('audioLink').href = fallbackUrl;
-                resultCard.classList.remove('hidden');
 
             } catch (error) {
                 alert(`❌ Error: ${error.message}`);
@@ -194,5 +59,3 @@
             }
         }
     </script>
-</body>
-</html>
